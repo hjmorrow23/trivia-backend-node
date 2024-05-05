@@ -3,10 +3,12 @@ import { prisma } from "../server";
 
 export const createQuiz = async (req: Request, res: Response) => {
     try {
-        const { type, questions } = req.body;
+        const { type, questions, difficulty, category } = req.body;
         const quiz = await prisma.quiz.create({
             data: {
                 type,
+                difficulty,
+                category,
                 questions: {
                     create: questions,
                 },
@@ -51,7 +53,7 @@ export const getQuiz = async (req: Request, res: Response) => {
 export const updateQuiz = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { type, questions } = req.body;
+        const { type, questions, difficulty, category } = req.body;
         const quiz = await prisma.quiz.update({
             where: {
                 id,
@@ -61,6 +63,8 @@ export const updateQuiz = async (req: Request, res: Response) => {
                 questions: {
                     update: questions,
                 },
+                difficulty,
+                category,
             },
         });
         res.status(200).json(quiz);
