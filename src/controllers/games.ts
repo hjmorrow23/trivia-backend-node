@@ -408,7 +408,7 @@ const deleteGameRoundSubmission = async (req: Request, res: Response) => {
     }
 };
 
-export {
+export default {
     createGame,
     getGames,
     getGame,

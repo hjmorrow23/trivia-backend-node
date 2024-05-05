@@ -1,14 +1,18 @@
 import { Request, Response } from "express";
 import { prisma } from "../server";
+import {
+    QuizRequestPayload,
+    QuizQuestionRequestPayload,
+} from "../types/quiz";
 
 export const createQuiz = async (req: Request, res: Response) => {
     try {
-        const { type, questions, difficulty, category } = req.body;
+        const { type, questions, difficulty, categoryId }: QuizRequestPayload = req.body;
         const quiz = await prisma.quiz.create({
             data: {
                 type,
                 difficulty,
-                category,
+                categoryId,
                 questions: {
                     create: questions,
                 },
@@ -53,7 +57,7 @@ export const getQuiz = async (req: Request, res: Response) => {
 export const updateQuiz = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { type, questions, difficulty, category } = req.body;
+        const { type, questions, difficulty, categoryId }: QuizRequestPayload = req.body;
         const quiz = await prisma.quiz.update({
             where: {
                 id,
@@ -64,7 +68,7 @@ export const updateQuiz = async (req: Request, res: Response) => {
                     update: questions,
                 },
                 difficulty,
-                category,
+                categoryId,
             },
         });
         res.status(200).json(quiz);
@@ -89,7 +93,7 @@ export const deleteQuiz = async (req: Request, res: Response) => {
 
 export const createQuizQuestion = async (req: Request, res: Response) => {
     try {
-        const { quizId, question, options, correctAnswerId } = req.body;
+        const { quizId, question, options, correctAnswerId, type }: QuizQuestionRequestPayload = req.body;
         const quizQuestion = await prisma.quizQuestion.create({
             data: {
                 quiz: {
@@ -100,6 +104,7 @@ export const createQuizQuestion = async (req: Request, res: Response) => {
                     create: options,
                 },
                 correctAnswerId,
+                type,
             },
         });
         res.status(200).json(quizQuestion);
@@ -154,17 +159,15 @@ export const deleteQuestionFromQuiz = async (req: Request, res: Response) => {
 export const updateQuizQuestion = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { question, options, correctAnswerId } = req.body;
+        const { question, correctAnswerId, type }: QuizQuestionRequestPayload = req.body;
         const quizQuestion = await prisma.quizQuestion.update({
             where: {
                 id,
             },
             data: {
                 question,
-                options: {
-                    update: options,
-                },
                 correctAnswerId,
+                type,
             },
         });
         res.status(200).json(quizQuestion);
@@ -247,6 +250,15 @@ export const deleteQuizQuestionOption = async (req: Request, res: Response) => {
             },
         });
         res.status(200).json(quizQuestionOption);
+    } catch (e) {
+        res.status(400).json({ error: e });
+    }
+}
+
+export const getQuizCategories = async (req: Request, res: Response) => {
+    try {
+        const quizCategories = await prisma.quizCategory.findMany();
+        res.status(200).json(quizCategories);
     } catch (e) {
         res.status(400).json({ error: e });
     }

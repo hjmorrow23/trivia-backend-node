@@ -133,6 +133,7 @@ model QuizQuestion {
   id              String               @id @default(cuid())
   quiz            Quiz                 @relation("gameQuizQuestions", fields: [quizId], references: [id])
   quizId          String               @unique
+  type            String
   question        String
   options         QuizQuestionOption[] @relation("gameQuizQuestionOptions")
   correctAnswerId String
