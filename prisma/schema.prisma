@@ -1,0 +1,156 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Player {
+  id             String                @id @default(cuid())
+  email          String                @unique
+  name           String?
+  password       String
+  username       String                @unique
+  status         String
+  games          Game[]                @relation("gamePlayers")
+  record         PlayerRecord?         @relation("playerRecord")
+  profile        Profile?              @relation("playerProfile")
+  gameSubmission GameRoundSubmission[] @relation("playerSubmission")
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  hostGames      Game[]                @relation("hostPlayer")
+}
+
+model PlayerRecord {
+  id        String   @id @default(cuid())
+  player    Player?  @relation("playerRecord", fields: [playerId], references: [id])
+  playerId  String   @unique
+  wins      Int
+  ties      Int
+  losses    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  player    Player   @relation("playerProfile", fields: [playerId], references: [id])
+  playerId  String   @unique
+  bio       String?
+  avatar    String?
+  country   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Game {
+  id          String       @id @default(cuid())
+  players     Player[]     @relation("gamePlayers")
+  hostPlayer  Player       @relation("hostPlayer", fields: [playerId], references: [id])
+  playerId    String
+  status      String
+  quiz        Quiz         @relation("gameQuiz", fields: [quizId], references: [id])
+  quizId      String
+  gameHistory GameHistory? @relation("gameHistory")
+  result      GameResult?  @relation("gameResult")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model GameHistory {
+  id         String      @id @default(cuid())
+  game       Game        @relation("gameHistory", fields: [gameId], references: [id])
+  gameId     String      @unique
+  gameRounds GameRound[] @relation("gameHistoryRounds")
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model GameResult {
+  id          String   @id @default(cuid())
+  game        Game     @relation("gameResult", fields: [gameId], references: [id])
+  gameId      String   @unique
+  winnerIds   String[]
+  finalScores Score[]  @relation("finalScores")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Score {
+  id             String      @id @default(cuid())
+  playerId       String      @unique
+  score          Int
+  finalScore     GameResult? @relation("finalScores", fields: [finalScoreId], references: [id])
+  finalScoreId   String
+  currentScore   GameRound?  @relation("currentScore", fields: [currentScoreId], references: [id])
+  currentScoreId String
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model GameRound {
+  id            String                @id @default(cuid())
+  gameHistory   GameHistory           @relation("gameHistoryRounds", fields: [gameHistoryId], references: [id])
+  gameHistoryId String                @unique
+  roundNumber   Int
+  currentScore  Score[]               @relation("currentScore")
+  submissions   GameRoundSubmission[] @relation("gameRoundSubmissions")
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+}
+
+model GameRoundSubmission {
+  id               String             @id @default(cuid())
+  gameRound        GameRound          @relation("gameRoundSubmissions", fields: [gameRoundId], references: [id])
+  gameRoundId      String             @unique
+  player           Player             @relation("playerSubmission", fields: [playerId], references: [id])
+  playerId         String
+  questionId       String
+  questionOption   QuizQuestionOption @relation("questionOptionSubmission", fields: [questionOptionId], references: [id])
+  questionOptionId String
+  answer           String
+  isCorrect        Boolean
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+}
+
+model Quiz {
+  id         String         @id @default(cuid())
+  games      Game[]         @relation("gameQuiz")
+  type       String
+  difficulty Int
+  category   String
+  questions  QuizQuestion[] @relation("gameQuizQuestions")
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+}
+
+model QuizQuestion {
+  id              String               @id @default(cuid())
+  quiz            Quiz                 @relation("gameQuizQuestions", fields: [quizId], references: [id])
+  quizId          String               @unique
+  question        String
+  options         QuizQuestionOption[] @relation("gameQuizQuestionOptions")
+  correctAnswerId String
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+}
+
+model QuizQuestionOption {
+  id               String                @id @default(cuid())
+  question         QuizQuestion          @relation("gameQuizQuestionOptions", fields: [questionId], references: [id])
+  questionId       String
+  option           String
+  isCorrect        Boolean
+  optionSubmission GameRoundSubmission[] @relation("questionOptionSubmission")
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
