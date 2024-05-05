@@ -122,7 +122,8 @@ model Quiz {
   games      Game[]         @relation("gameQuiz")
   type       String
   difficulty Int
-  category   String
+  category   QuizCategory   @relation("categoryQuizzes", fields: [categoryId], references: [id])
+  categoryId String
   questions  QuizQuestion[] @relation("gameQuizQuestions")
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
@@ -148,6 +149,14 @@ model QuizQuestionOption {
   optionSubmission GameRoundSubmission[] @relation("questionOptionSubmission")
   createdAt        DateTime              @default(now())
   updatedAt        DateTime              @updatedAt
+}
+
+model QuizCategory {
+  id        String   @id @default(cuid())
+  name      String
+  quizzes   Quiz[]   @relation("categoryQuizzes")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 datasource db {
