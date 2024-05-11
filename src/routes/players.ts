@@ -1,12 +1,12 @@
 import express from "express";
 import * as PlayerController from "../controllers/players";
+import { verifyToken } from "../middlewares/authJwt";
 
 const router = express.Router();
 
-router.post("/", PlayerController.createPlayer);
-router.get("/", PlayerController.getPlayers);
-router.get("/:id", PlayerController.getPlayer);
-router.put("/:id", PlayerController.updatePlayer);
-router.delete("/:id", PlayerController.deletePlayer);
+router.get("/", [verifyToken], PlayerController.getPlayers);
+router.get("/:id", [verifyToken], PlayerController.getPlayer);
+router.put("/:id", [verifyToken], PlayerController.updatePlayer);
+router.delete("/:id", [verifyToken], PlayerController.deletePlayer);
 
 export default router;

@@ -1,5 +1,8 @@
 import express, { Request, Response } from "express";
+import cors from "cors";
+import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
+import authRouter from "./routes/auth";
 import GameRouter from "./routes/games";
 import PlayerRouter from "./routes/players";
 import QuizRouter from "./routes/quizzes";
@@ -11,11 +14,19 @@ const port = 8080;
 
 async function main() {
   app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(cors());
+  dotenv.config();
+
+  let corsOptions = {
+    origin: "http://localhost:3000"
+  };
 
   // Register API routes
   app.use("/api/games", GameRouter);
   app.use("/api/players", PlayerRouter);
   app.use("/api/quizzes", QuizRouter);
+  authRouter(app);
 
 
   // Catch unregistered routes

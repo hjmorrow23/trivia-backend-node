@@ -1,7 +1,37 @@
 import { Request, Response } from "express";
 import { prisma } from "../server";
 import { PlayerStatuses } from "../types/player";
+import config from "../config/auth.config";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import { exclude } from "../helpers/exclude";
 
+export const login = async (req: Request, res: Response) => {
+    try {
+        const { username, password } = req.body;
+        const player = await prisma.player.findUnique({
+            where: {
+                username,
+            },
+        });
+        if (player && bcrypt.compareSync(password, player.password)) {
+            let token = jwt.sign({ id: player.id }, config.secret, {
+                expiresIn: 86400 // 24 hours
+            });
+            res.status(200).json({
+                id: player.id,
+                username: player.username,
+                email: player.email,
+                token,
+
+            });
+        } else {
+            res.status(401).json({ error: "Invalid username or password" });
+        }
+    } catch (e) {
+        res.status(400).json({ error: e });
+    }
+};
 
 export const createPlayer = async (req: Request, res: Response) => {
     try {
@@ -10,7 +40,7 @@ export const createPlayer = async (req: Request, res: Response) => {
             data: {
                 email,
                 name,
-                password,
+                password: bcrypt.hashSync(password, 10),
                 username,
                 status: PlayerStatuses.ACTIVE,
                 record: {
@@ -29,7 +59,8 @@ export const createPlayer = async (req: Request, res: Response) => {
                 },
             },
         });
-        res.status(200).json(player);
+        const playerWithoutPassword = exclude(player, ["password"]);
+        res.status(200).json(playerWithoutPassword);
     } catch (e) {
         res.status(400).json({ error: e });
     }
@@ -43,7 +74,8 @@ export const getPlayers = async (req: Request, res: Response) => {
                 profile: true,
             },
         });
-        res.status(200).json(players);
+        const playersWithoutPassword = players.map((player) => exclude(player, ["password"]));
+        res.status(200).json(playersWithoutPassword);
     } catch (e) {
         res.status(400).json({ error: e });
     }
@@ -61,7 +93,8 @@ export const getPlayer = async (req: Request, res: Response) => {
                 profile: true,
             },
         });
-        res.status(200).json(player);
+        const playerWithoutPassword = exclude(player, ["password"]);
+        res.status(200).json(playerWithoutPassword);
     } catch (e) {
         res.status(400).json({ error: e });
     }
@@ -83,7 +116,8 @@ export const updatePlayer = async (req: Request, res: Response) => {
 
             },
         });
-        res.status(200).json(player);
+        const playerWithoutPassword = exclude(player, ["password"]);
+        res.status(200).json(playerWithoutPassword);
     } catch (e) {
         res.status(400).json({ error: e });
     }
@@ -97,7 +131,7 @@ export const deletePlayer = async (req: Request, res: Response) => {
                 id,
             },
         });
-        res.status(200).json(player);
+        res.status(200).json({ message: "Player deleted successfully" });
     } catch (e) {
         res.status(400).json({ error: e });
     }

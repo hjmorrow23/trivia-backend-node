@@ -1,12 +1,13 @@
 import express from "express";
 import * as QuizController from "../controllers/quizzes";
+import { verifyToken } from "../middlewares/authJwt";
 
 const router = express.Router();
 
-router.post("/", QuizController.createQuiz);
-router.get("/", QuizController.getQuizzes);
-router.get("/:id", QuizController.getQuiz);
-router.put("/:id", QuizController.updateQuiz);
-router.delete("/:id", QuizController.deleteQuiz);
+router.post("/", [verifyToken], QuizController.createQuiz);
+router.get("/", [verifyToken], QuizController.getQuizzes);
+router.get("/:id", [verifyToken], QuizController.getQuiz);
+router.put("/:id", [verifyToken], QuizController.updateQuiz);
+router.delete("/:id", [verifyToken], QuizController.deleteQuiz);
 
 export default router;
