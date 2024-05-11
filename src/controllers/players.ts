@@ -103,7 +103,7 @@ export const getPlayer = async (req: Request, res: Response) => {
 export const updatePlayer = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { email, name, password, username } = req.body;
+        const { email, name, password, username, status } = req.body;
         const player = await prisma.player.update({
             where: {
                 id,
@@ -113,7 +113,7 @@ export const updatePlayer = async (req: Request, res: Response) => {
                 name,
                 password,
                 username,
-
+                status,
             },
         });
         const playerWithoutPassword = exclude(player, ["password"]);
@@ -126,11 +126,22 @@ export const updatePlayer = async (req: Request, res: Response) => {
 export const deletePlayer = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const player = await prisma.player.delete({
+        const deletePlayerRecords = prisma.playerRecord.delete({
+            where: {
+                playerId: id,
+            },
+        })
+        const deletePlayerProfile = prisma.profile.delete({
+            where: {
+                playerId: id,
+            },
+        })
+        const deletePlayer = prisma.player.delete({
             where: {
                 id,
             },
         });
+        await prisma.$transaction([deletePlayerRecords, deletePlayerProfile, deletePlayer]);
         res.status(200).json({ message: "Player deleted successfully" });
     } catch (e) {
         res.status(400).json({ error: e });
@@ -154,6 +165,9 @@ export const updatePlayerRecord = async (req: Request, res: Response) => {
                     },
                 },
             },
+            include: {
+                record: true,
+            }
         });
         res.status(200).json(player);
     } catch (e) {
@@ -177,6 +191,9 @@ export const clearPlayerRecord = async (req: Request, res: Response) => {
                     },
                 },
             },
+            include: {
+                record: true,
+            }
         });
         res.status(200).json(player);
     } catch (e) {
@@ -219,6 +236,9 @@ export const updatePlayerProfile = async (req: Request, res: Response) => {
                     },
                 },
             },
+            include: {
+                profile: true,
+            }
         });
         res.status(200).json(player);
     } catch (e) {
