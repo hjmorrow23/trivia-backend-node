@@ -14,7 +14,12 @@ export const createQuiz = async (req: Request, res: Response) => {
                 difficulty,
                 categoryId,
                 questions: {
-                    create: questions,
+                    create: questions.map((question: any) => ({
+                        ...question,
+                        options: {
+                            create: question.options,
+                        },
+                    })),
                 },
             },
         });
@@ -28,7 +33,12 @@ export const getQuizzes = async (req: Request, res: Response) => {
     try {
         const quizzes = await prisma.quiz.findMany({
             include: {
-                questions: true,
+                questions: {
+                    include: {
+                        options: true,
+                    },
+
+                },
             },
         });
         res.status(200).json(quizzes);
@@ -45,7 +55,12 @@ export const getQuiz = async (req: Request, res: Response) => {
                 id,
             },
             include: {
-                questions: true,
+                questions: {
+                    include: {
+                        options: true,
+                    },
+
+                },
             },
         });
         res.status(200).json(quiz);
@@ -65,7 +80,12 @@ export const updateQuiz = async (req: Request, res: Response) => {
             data: {
                 type,
                 questions: {
-                    update: questions,
+                    update: questions.map((question: any) => ({
+                        ...question,
+                        options: {
+                            update: question.options,
+                        },
+                    })),
                 },
                 difficulty,
                 categoryId,
@@ -124,7 +144,12 @@ export const addQuestionsToQuiz = async (req: Request, res: Response) => {
             },
             data: {
                 questions: {
-                    create: questions,
+                    create: questions.map((question: any) => ({
+                        ...question,
+                        options: {
+                            create: question.options,
+                        },
+                    })),
                 },
             },
         });
@@ -197,6 +222,9 @@ export const getQuizQuestion = async (req: Request, res: Response) => {
             where: {
                 id,
             },
+            include: {
+                options: true,
+            },
         });
         res.status(200).json(quizQuestion);
     } catch (e) {
@@ -259,6 +287,35 @@ export const getQuizCategories = async (req: Request, res: Response) => {
     try {
         const quizCategories = await prisma.quizCategory.findMany();
         res.status(200).json(quizCategories);
+    } catch (e) {
+        res.status(400).json({ error: e });
+    }
+}
+
+export const getQuizCategory = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        console.log('id', id)
+        const quizCategory = await prisma.quizCategory.findUnique({
+            where: {
+                id,
+            },
+        });
+        res.status(200).json(quizCategory);
+    } catch (e) {
+        res.status(400).json({ error: e });
+    }
+}
+
+export const createQuizCategory = async (req: Request, res: Response) => {
+    try {
+        const { name } = req.body;
+        const quizCategory = await prisma.quizCategory.create({
+            data: {
+                name,
+            },
+        });
+        res.status(200).json(quizCategory);
     } catch (e) {
         res.status(400).json({ error: e });
     }

@@ -21,6 +21,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "@auth/express": "^0.5.5",
     "@prisma/client": "^5.13.0",
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.17",

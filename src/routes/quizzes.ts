@@ -9,5 +9,8 @@ router.get("/", [verifyToken], QuizController.getQuizzes);
 router.get("/:id", [verifyToken], QuizController.getQuiz);
 router.put("/:id", [verifyToken], QuizController.updateQuiz);
 router.delete("/:id", [verifyToken], QuizController.deleteQuiz);
+router.get("/categories/list", [verifyToken], QuizController.getQuizCategories);
+router.get("/categories/:id", [verifyToken], QuizController.getQuizCategory);
+router.post("/categories", [verifyToken], QuizController.createQuizCategory);
 
 export default router;
